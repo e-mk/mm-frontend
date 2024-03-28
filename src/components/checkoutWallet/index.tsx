@@ -1,9 +1,14 @@
-const CheckoutButtonWallet = () => {
+const CheckoutButtonWallet = ({
+    onInitializeClick
+}: {
+    onInitializeClick: any
+}) => {
     return (
         <button
-            className="bg-blue-700 hover:bg-blue-800 duration-200 px-8 py-4 rounded-lg text-white"
+            onClick={onInitializeClick}
+            className="bg-blue-700 hover:bg-blue-800 duration-200 px-10 m-3 py-2 rounded-lg text-white"
         >
-            Buy Wallet
+            Initialize
         </button>
     );
 };
