@@ -249,6 +249,7 @@ export const useSolana = ({
         ?.sendAndConfirm(tx, [])
         // .then(log)
         .catch((e) => console.error(e));
+      return true;
     } catch (error) {
       showNotification((error as { message: string }).message, "error");
     }
