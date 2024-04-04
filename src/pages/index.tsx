@@ -11,6 +11,8 @@ import { mintHandle } from '@/utils/mint';
 import { useSolana } from '@/hooks/useSolana';
 import { IProduct, IMintType, IMints } from '@/interface/productInterface';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useRouter } from 'next/router';
+import { showNotification } from '@/utils/showNotification';
 
 export default function Home() {
   const tokenAmount = new URLSearchParams(window.location.search).get('amount');
@@ -24,6 +26,7 @@ export default function Home() {
   const providerMint: any = useRef({});
   const [mintedProducts, setMintedProducts] = useState<IMints | {}>({});
   const buyerWalletPK = useWallet().publicKey!!;
+  const router = useRouter();
   const { initialize, acceptWallet, acceptStripe } = useSolana({
     mintedProducts,
     buyerWalletPK
@@ -34,7 +37,7 @@ export default function Home() {
     (async () => {
       try {
         if (buyerWalletPK && Object.values(mintedProducts).length && tokenAmount) {
-          await acceptStripe({
+          const isStripeAccepted = await acceptStripe({
             provider,
             sellerAccept: seller,
             type: IMintType[typeQueryParam as keyof typeof IMintType],
@@ -42,9 +45,13 @@ export default function Home() {
             quantity: quantity || tokenAmount,
             mintedProductsData: mintedProducts
           })
+
+          if (isStripeAccepted) {
+            router.replace("/", undefined, { shallow: true })
+          }
         }
-      } catch (ex) {
-        console.log(ex)
+      } catch (error) {
+        showNotification((error as { message: string }).message, "error");
       }
     })()
   }, [tokenAmount, typeQueryParam, mintedProducts, buyerWalletPK]);
