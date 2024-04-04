@@ -1,7 +1,7 @@
 const CheckoutButtonCancel = ({
     onCancelClick
 }: {
-    onCancelClick: any
+    onCancelClick: () => void;
 }) => {
     return (
         <button

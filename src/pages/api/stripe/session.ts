@@ -31,7 +31,7 @@ export default async function handler(req: any, res: any) {
         ],
         mode: "payment",
         cancel_url: `${host}`,
-        success_url: `${host}?amount=${body?.amount}&id=${body?.id}`,
+        success_url: `${host}?amount=${body?.amount}&id=${body?.id}&type=${body.type}`,
       });
 
       res.status(200).json({ sessionId: session.id });

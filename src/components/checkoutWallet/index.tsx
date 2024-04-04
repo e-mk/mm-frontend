@@ -1,7 +1,7 @@
 const CheckoutButtonWallet = ({
     onInitializeClick
 }: {
-    onInitializeClick: any
+    onInitializeClick: () => void
 }) => {
     return (
         <button

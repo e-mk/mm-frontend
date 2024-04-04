@@ -1,7 +1,7 @@
 const CheckoutButtonAccept = ({
     onAcceptClick
 }: {
-    onAcceptClick?: any
+    onAcceptClick: () => void;
 }) => {
     return (
         <button

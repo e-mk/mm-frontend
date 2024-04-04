@@ -1,31 +1,42 @@
-import { loadStripe } from "@stripe/stripe-js";
+import { Stripe, loadStripe } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
+import { YPRICE } from "@/costants/costants";
 
-const asyncStripe = loadStripe("pk_test_51LUSVbA0dLaAXlIjj4hVqrKJV77njbL9G1sC4ZbqyJqJF9CiX3YqMaBvgQtX192NVDnLmrxvAR9inAdOEKENYsDt009uNikU59");
+const asyncStripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as string);
 
-const CheckoutButtonStripe = ({ amount = 1, productId }: { amount: any, productId: any }) => {
+const CheckoutButtonStripe = ({
+    amount = 1,
+    productId,
+    type
+}:
+    {
+        amount: number | string,
+        productId: number,
+        type: string
+    }) => {
     const router = useRouter();
-
+    const usdAmount = +amount * YPRICE;
     const handler = async () => {
         try {
-            const stripe: any = await asyncStripe;
+            const stripe = await asyncStripe;
+
             const res = await fetch("/api/stripe/session", {
                 method: "POST",
                 body: JSON.stringify({
-                    amount,
-                    id: productId
+                    amount: usdAmount,
+                    id: productId,
+                    type
                 }),
                 headers: { "Content-Type": "application/json" },
             });
             const { sessionId } = await res.json();
 
-            const { error } = await stripe.redirectToCheckout({ sessionId });
+            const redirectResult = await stripe?.redirectToCheckout({ sessionId });
 
-            if (error) {
+            if (redirectResult?.error) {
                 router.push("/error");
             }
         } catch (err) {
-            console.log(err);
             router.push("/error");
         }
     };

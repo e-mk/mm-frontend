@@ -1,27 +1,53 @@
-import { PublicKeyData, PublicKey } from "@solana/web3.js";
-import { Program, web3, Idl, BN } from "@project-serum/anchor";
+import {
+  PublicKeyData,
+  PublicKey,
+  Keypair,
+  Connection,
+  SYSVAR_INSTRUCTIONS_PUBKEY,
+  Ed25519Program,
+  Transaction,
+} from "@solana/web3.js";
+import { Program, web3, Idl, BN, AnchorProvider } from "@project-serum/anchor";
 import { showNotification } from "@/utils/showNotification";
-import idl from "../../../mm-escrow/target/idl/mm_escrow.json";
+import idl from "../mm_escrow.json";
 import * as anchor from "@coral-xyz/anchor";
 import * as splToken from "@solana/spl-token";
 import { useWallet } from "@solana/wallet-adapter-react";
+import { USDC_MINT, YPRICE } from "@/costants/costants";
+import { IMintType, IMints } from "@/interface/productInterface";
+import wallet from "../key.json";
+import { intToBytes } from "@/utils/utils";
 
-export const useSolana = ({ mintedProducts }: { mintedProducts: any }) => {
+const log = async (signature: string): Promise<string> => {
+  console.log(
+    `Your transaction signature: https://explorer.solana.com/transaction/${signature}?cluster=custom&customUrl=${
+      anchor.getProvider().connection.rpcEndpoint
+    }`
+  );
+  return signature.toString();
+};
+
+export const useSolana = ({
+  mintedProducts,
+  buyerWalletPK,
+}: {
+  mintedProducts: IMints | {};
+  buyerWalletPK: PublicKey;
+}) => {
   const programID = new web3.PublicKey(
     process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID as PublicKeyData
   );
-  const buyerWalletPK = useWallet().publicKey!!;
+  const adminKeypair = Keypair.fromSecretKey(new Uint8Array(wallet));
 
   const initialize = async (
-    seller?: any,
-    provider?: any,
-    price?: any,
-    usdc_mint?: any,
-    type?: string
+    seller: Keypair,
+    provider?: AnchorProvider,
+    price?: number,
+    type?: IMintType
   ) => {
     const program = new Program(idl as Idl, programID, provider);
-
-    const { mint = "", sellers_token = "" } = mintedProducts[type!!] ?? {};
+    const { mint = "", sellers_token = "" } =
+      (mintedProducts as IMints)[type!!] ?? {};
 
     const escrow = anchor.web3.PublicKey.findProgramAddressSync(
       [
@@ -36,39 +62,41 @@ export const useSolana = ({ mintedProducts }: { mintedProducts: any }) => {
       [anchor.utils.bytes.utf8.encode("escrow"), escrow[0].toBuffer()],
       programID
     );
+    const TOKEN_DECIMALS = 1000000;
+    const xAmount = new anchor.BN((price!! * TOKEN_DECIMALS) / YPRICE);
 
     try {
-      await program.rpc.initialize(new BN(price), new BN(50), type, {
-        accounts: {
+      await program.methods
+        .initialize(xAmount, new anchor.BN(YPRICE), type)
+        .accounts({
           seller: seller.publicKey,
           xMint: mint,
-          yMint: usdc_mint,
+          yMint: USDC_MINT,
           sellersXToken: sellers_token,
           escrow: escrow[0],
           escrowedXTokens: escrowedXTokens[0],
           tokenProgram: splToken.TOKEN_PROGRAM_ID,
           systemProgram: anchor.web3.SystemProgram.programId,
-        },
-        signers: [seller],
-      });
-      console.log(type, "type2");
+        })
+        .signers([seller])
+        .rpc();
     } catch (error) {
       showNotification((error as { message: string }).message, "error");
     }
   };
 
-  const accept = async ({
+  const acceptWallet = async ({
     provider,
     sellerAccept,
     type,
     connection,
-    usdc_mint,
+    quantity,
   }: {
-    provider?: any;
-    sellerAccept?: any;
-    type?: any;
-    connection?: any;
-    usdc_mint?: any;
+    provider?: AnchorProvider;
+    sellerAccept: Keypair;
+    type?: IMintType;
+    connection: Connection;
+    quantity: string;
   }) => {
     const program = new Program(idl as Idl, programID, provider);
 
@@ -86,7 +114,7 @@ export const useSolana = ({ mintedProducts }: { mintedProducts: any }) => {
       programID
     );
 
-    const { mint = "" } = mintedProducts[type!!] ?? {};
+    const { mint = "" } = (mintedProducts as IMints)[type!!] ?? {};
 
     const buyers_token_init = await splToken.getOrCreateAssociatedTokenAccount(
       connection,
@@ -98,35 +126,133 @@ export const useSolana = ({ mintedProducts }: { mintedProducts: any }) => {
     const buyers_usdc_token = await splToken.getOrCreateAssociatedTokenAccount(
       connection,
       sellerAccept,
-      usdc_mint,
+      USDC_MINT,
       buyerWalletPK
     );
 
     const sellers_usdc_token = await splToken.getOrCreateAssociatedTokenAccount(
       connection,
       sellerAccept,
-      usdc_mint,
+      USDC_MINT,
       sellerAccept.publicKey
     );
 
+    const xRequested = +quantity * 1000000;
+    const yAmount = +xRequested * YPRICE;
+
     try {
-      await program.rpc.accept({
-        accounts: {
+      await program.methods
+        .accept(new anchor.BN(xRequested), new anchor.BN(yAmount))
+        .accounts({
           escrow: escrowAccept[0],
           escrowedXTokens: escrowedXTokensAccept[0],
           tokenProgram: splToken.TOKEN_PROGRAM_ID,
           systemProgram: anchor.web3.SystemProgram.programId,
           buyer: buyerWalletPK,
+          yMint: USDC_MINT,
           sellersYTokens: sellers_usdc_token.address,
           buyersXTokens: buyers_token_init.address,
           buyersYTokens: buyers_usdc_token.address,
-        },
-        signers: [],
-      });
+          instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+        })
+        .signers([])
+        .rpc();
     } catch (error) {
       showNotification((error as { message: string }).message, "error");
     }
   };
 
-  return { initialize, accept };
+  const acceptStripe = async ({
+    provider,
+    sellerAccept,
+    type,
+    connection,
+    quantity,
+    mintedProductsData,
+  }: {
+    provider?: AnchorProvider;
+    sellerAccept: Keypair;
+    type?: IMintType;
+    connection: Connection;
+    quantity: string;
+    mintedProductsData: any;
+  }) => {
+    const program = new Program(idl as Idl, programID, provider);
+
+    const escrowAcceptStripe = anchor.web3.PublicKey.findProgramAddressSync(
+      [
+        anchor.utils.bytes.utf8.encode("escrow"),
+        sellerAccept.publicKey.toBuffer(),
+        anchor.utils.bytes.utf8.encode(type as string),
+      ],
+      programID
+    );
+    const escrowedXTokensAcceptStripe =
+      anchor.web3.PublicKey.findProgramAddressSync(
+        [
+          anchor.utils.bytes.utf8.encode("escrow"),
+          escrowAcceptStripe[0].toBuffer(),
+        ],
+        programID
+      );
+
+    const { mint = "" } = (mintedProductsData as IMints)[type!!] ?? {};
+
+    const buyers_token_init = await splToken.getOrCreateAssociatedTokenAccount(
+      connection,
+      sellerAccept,
+      new PublicKey(mint),
+      buyerWalletPK
+    );
+
+    const buyers_usdc_token = await splToken.getOrCreateAssociatedTokenAccount(
+      connection,
+      sellerAccept,
+      USDC_MINT,
+      buyerWalletPK
+    );
+
+    const sellers_usdc_token = await splToken.getOrCreateAssociatedTokenAccount(
+      connection,
+      sellerAccept,
+      USDC_MINT,
+      sellerAccept.publicKey
+    );
+
+    const xRequested = +quantity * 1000000;
+    const yAmount = +xRequested * YPRICE;
+    try {
+      const message = intToBytes(yAmount);
+      const ed25519Ix = Ed25519Program.createInstructionWithPrivateKey({
+        privateKey: adminKeypair.secretKey,
+        message,
+      });
+
+      const acceptIx = await program.methods
+        .accept(new anchor.BN(xRequested), new anchor.BN(yAmount))
+        .accounts({
+          escrow: escrowAcceptStripe[0],
+          escrowedXTokens: escrowedXTokensAcceptStripe[0],
+          tokenProgram: splToken.TOKEN_PROGRAM_ID,
+          systemProgram: anchor.web3.SystemProgram.programId,
+          buyer: buyerWalletPK,
+          yMint: USDC_MINT,
+          sellersYTokens: sellers_usdc_token.address,
+          buyersXTokens: buyers_token_init.address,
+          buyersYTokens: buyers_usdc_token.address,
+          instructions: SYSVAR_INSTRUCTIONS_PUBKEY,
+        })
+        .instruction();
+
+      const tx = new Transaction().add(ed25519Ix, acceptIx);
+      await provider
+        ?.sendAndConfirm(tx, [])
+        // .then(log)
+        .catch((e) => console.error(e));
+    } catch (error) {
+      showNotification((error as { message: string }).message, "error");
+    }
+  };
+
+  return { initialize, acceptWallet, acceptStripe };
 };

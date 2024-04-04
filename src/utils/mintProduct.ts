@@ -1,16 +1,17 @@
 import mintData from "../pages/mint.json";
 import * as splToken from "@solana/spl-token";
+import { Connection, Keypair } from "@solana/web3.js";
 
 export const mintProduct = async ({
   type,
   seller,
   connection,
-  x_amount,
+  mintAmount,
 }: {
   type: string;
-  seller: any;
-  connection: any;
-  x_amount: any;
+  seller: Keypair;
+  connection: Connection;
+  mintAmount: number | undefined;
 }) => {
   const jsonMint: any = mintData;
   const product = (jsonMint ?? {})[type];
@@ -27,7 +28,7 @@ export const mintProduct = async ({
       seller,
       seller.publicKey,
       seller.publicKey,
-      1
+      6
     );
 
     sellers_token = await splToken.getOrCreateAssociatedTokenAccount(
@@ -37,14 +38,13 @@ export const mintProduct = async ({
       seller.publicKey
     );
 
-    // mint_x_token_seller
     await splToken.mintTo(
       connection,
       seller,
       mint,
       sellers_token.address,
       seller,
-      x_amount
+      mintAmount!! * 1000000
     );
 
     await fetch("/api/mint", {
