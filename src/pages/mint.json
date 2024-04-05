@@ -1,17 +1,20 @@
 {
   "watch": {
-    "mintAddress": "FxiyEzJ1hR5ohwgyojFn3xhdwy3q2knQKFVd9xChNF5H",
-    "associatedTokenAddress": "2GZvePqJRD2Y1oHcRd6T9Ev37K6f6H8TMHjGRjSNXr5n",
+    "id": "be4ed47da917226",
+    "mintAddress": "9XVQKBzPi14vFq79vZ81dLHLkBgWjQJawSmmcBzT6YXb",
+    "associatedTokenAddress": "DC9ssbTETn5HVaGq6vnyAh59pyM1GapTrzrt7YpzgC4N",
     "price": 5000
   },
   "car": {
-    "mintAddress": "CzN4BNmkr6wGm4mzgzu2YC7fCAwdeWDTGcqrS6mmuYws",
-    "associatedTokenAddress": "7P1KNnCPnQCuCoj7XBUNEnSzp1oaeGQCAo8YEkxHiT1G",
-    "price": 200000
+    "id": "556356aa2fd6fc4",
+    "mintAddress": "64dgnqQ3gSxvN3r4sFa6bzXTpfZLyAPnnpkZAoZ6iz6V",
+    "associatedTokenAddress": "CfUb3eeK6kUBt2yxoWJo8n7fPvWNM7xsupzmHmQhtKmw",
+    "price": 500000
   },
   "boat": {
-    "mintAddress": "2wh5BZvrVoHvGkurATxTCk8VcdzV4dm15LpG29Pkv1dU",
-    "associatedTokenAddress": "5Gwi8yZ34KW8LjZ5iYYYUtW3WrsW64AhkZA1QZXoWqZx",
+    "id": "6d9da49128db35b",
+    "mintAddress": "5WXLFM5g2R5yHYfaxBFBNAAzxhhPGSDdXckBWh6Hy581",
+    "associatedTokenAddress": "mH9m1JZbKcZJQcqvKPJPNJmF6KAWUm3aBGJN8cyFMrw",
     "price": 500000
   }
 }

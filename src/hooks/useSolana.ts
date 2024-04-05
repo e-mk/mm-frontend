@@ -17,7 +17,7 @@ import { USDC_MINT, YPRICE } from "@/costants/costants";
 import { IMintType, IMints } from "@/interface/productInterface";
 import wallet from "../key.json";
 import { intToBytes } from "@/utils/utils";
-import { adminKeypair, programID } from "@/pages/utils";
+import { adminKeypair, findProductByType, programID } from "@/pages/utils";
 import mintedProducts from "../pages/mint.json";
 
 export const useSolana = ({
@@ -82,17 +82,20 @@ export const useSolana = ({
   }: {
     provider?: AnchorProvider;
     sellerAccept: Keypair;
-    type?: IMintType;
+    type: IMintType;
     connection: Connection;
     quantity: string;
   }) => {
     const program = new Program(idl as Idl, programID, provider);
+    const { id } = findProductByType(type) ?? {};
+    const productId = `${type}-${id}`;
+
 
     const escrowAccept = anchor.web3.PublicKey.findProgramAddressSync(
       [
         anchor.utils.bytes.utf8.encode("escrow"),
         sellerAccept.publicKey.toBuffer(),
-        anchor.utils.bytes.utf8.encode(type as string),
+        anchor.utils.bytes.utf8.encode(productId),
       ],
       programID
     );
@@ -159,18 +162,20 @@ export const useSolana = ({
   }: {
     provider?: AnchorProvider;
     sellerAccept: Keypair;
-    type?: IMintType;
+    type: IMintType;
     connection: Connection;
     quantity: string;
     mintedProductsData: any;
   }) => {
     const program = new Program(idl as Idl, programID, provider);
+    const { id } = findProductByType(type) ?? {};
+    const productId = `${type}-${id}`;
 
     const escrowAcceptStripe = anchor.web3.PublicKey.findProgramAddressSync(
       [
         anchor.utils.bytes.utf8.encode("escrow"),
         sellerAccept.publicKey.toBuffer(),
-        anchor.utils.bytes.utf8.encode(type as string),
+        anchor.utils.bytes.utf8.encode(productId),
       ],
       programID
     );

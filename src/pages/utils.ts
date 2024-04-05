@@ -8,6 +8,7 @@ import {
 } from "@solana/web3.js";
 import adminWallet from "../key.json";
 import { getProvider } from "@project-serum/anchor";
+import mintedData from '../pages/mint.json';
 
 export const confirmTx = async (signature: string): Promise<string> => {
   const block = await connection.getLatestBlockhash();
@@ -41,3 +42,7 @@ export const connection = new Connection(
   clusterApiUrl(process.env.NEXT_PUBLIC_SOLANA as Cluster),
   "confirmed"
 );
+
+export const findProductByType = (type: string) => {
+  return mintedData[type as keyof typeof mintedData];
+}

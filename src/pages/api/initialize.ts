@@ -9,7 +9,7 @@ import idl  from '../../mm_escrow.json';
 import mintData  from '../mint.json';
 import { USDC_MINT, YPRICE } from "@/costants/costants";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { adminKeypair, confirmTx, connection, opts, programID } from "../utils";
+import { adminKeypair, confirmTx, connection, findProductByType, opts, programID } from "../utils";
 
 const provider = new AnchorProvider(
   connection,
@@ -22,12 +22,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const program = new Program(idl as Idl, programID, provider);
   const mintJsonData: any = mintData;
   const { mintAddress = "", associatedTokenAddress = "", price = 0 } = mintJsonData[type!!] ?? {};
+  const { id = "" } = findProductByType(type) ?? {};
+  const productId = `${type}-${id}`;
 
   const escrow = PublicKey.findProgramAddressSync(
     [
       utils.bytes.utf8.encode("escrow"),
       adminKeypair.publicKey.toBuffer(),
-      utils.bytes.utf8.encode(type as string),
+      utils.bytes.utf8.encode(productId as string),
     ],
     programID
   );
@@ -40,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const xAmount = new BN((price!! * TOKEN_DECIMALS) / YPRICE);
   try {
     await program.methods
-      .initialize(xAmount, new BN(YPRICE), type)
+      .initialize(xAmount, new BN(YPRICE), productId)
       .accounts({
         seller: adminKeypair.publicKey,
         xMint: mintAddress,
@@ -56,7 +58,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .then(confirmTx)
       .catch(error => {
         console.log(error);
-        throw new Error(error)
+        res.status(500).json({
+          error
+        })
       });
       res.status(200).json({
         done: true

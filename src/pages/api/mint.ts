@@ -2,7 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { writeFileSync, readFileSync } from "fs";
 import { createMint, getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 import { adminKeypair, connection } from "../utils";
-const path = process.cwd() + "/src/pages/mint.json";
+import crypto from "crypto";
+
 
 export default async  function handler(req: NextApiRequest, res: NextApiResponse) {
   const { 
@@ -10,7 +11,8 @@ export default async  function handler(req: NextApiRequest, res: NextApiResponse
     type,
     mintAmount 
   } = req.body;
-
+  const id = crypto.randomBytes(16).toString("hex").slice(1, 16);
+  const path = process.cwd() + "/src/pages/mint.json";
 
   const mintAddress = await createMint(
     connection,
@@ -44,6 +46,7 @@ export default async  function handler(req: NextApiRequest, res: NextApiResponse
     }
     const parsedData = JSON.parse(data);
     parsedData[type] = {
+      id,
       mintAddress: mintAddress.toString(),
       associatedTokenAddress: associatedTokenAddress.address,
       price,
