@@ -1,7 +1,7 @@
 import { StaticImageData } from "next/image";
 
 export interface IMint {
-  mint: string;
+  mintAddress: string;
   associatedTokenAddress: string;
   price: number;
 }

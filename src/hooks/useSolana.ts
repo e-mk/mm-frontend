@@ -18,15 +18,15 @@ import { IMintType, IMints } from "@/interface/productInterface";
 import wallet from "../key.json";
 import { intToBytes } from "@/utils/utils";
 import { adminKeypair, programID } from "@/pages/utils";
+import mintedProducts from "../pages/mint.json";
 
 export const useSolana = ({
-  mintedProducts,
+  // mintedProducts,
   buyerWalletPK,
 }: {
-  mintedProducts: IMints | {};
+  // mintedProducts: IMints | {};
   buyerWalletPK: PublicKey;
 }) => {
-
   // const initialize = async (
   //   seller: Keypair,
   //   provider?: AnchorProvider,
@@ -102,12 +102,12 @@ export const useSolana = ({
       programID
     );
 
-    const { mint = "" } = (mintedProducts as IMints)[type!!] ?? {};
+    const { mintAddress = "" } = (mintedProducts as IMints)[type!!] ?? {};
 
     const buyers_token_init = await splToken.getOrCreateAssociatedTokenAccount(
       connection,
       sellerAccept,
-      new PublicKey(mint),
+      new PublicKey(mintAddress),
       buyerWalletPK
     );
 
@@ -124,7 +124,6 @@ export const useSolana = ({
       USDC_MINT,
       sellerAccept.publicKey
     );
-
     const xRequested = +quantity * 1000000;
     const yAmount = +xRequested * YPRICE;
 
@@ -184,12 +183,12 @@ export const useSolana = ({
         programID
       );
 
-    const { mint = "" } = (mintedProductsData as IMints)[type!!] ?? {};
+    const { mintAddress = "" } = (mintedProductsData as IMints)[type!!] ?? {};
 
     const buyers_token_init = await splToken.getOrCreateAssociatedTokenAccount(
       connection,
       sellerAccept,
-      new PublicKey(mint),
+      new PublicKey(mintAddress),
       buyerWalletPK
     );
 
