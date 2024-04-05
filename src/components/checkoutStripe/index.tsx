@@ -1,4 +1,4 @@
-import { Stripe, loadStripe } from "@stripe/stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
 import { YPRICE } from "@/costants/costants";
 
@@ -43,7 +43,7 @@ const CheckoutButtonStripe = ({
             onClick={handler}
             className="bg-blue-700 hover:bg-blue-800 duration-200 px-8 mx-3 py-4 rounded-lg text-white"
         >
-            Buy Stripe
+            Buy with stripe
         </button>
     );
 };

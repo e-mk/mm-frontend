@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Keypair } from "@solana/web3.js";
 import CheckoutButtonStripe from "@/components/checkoutStripe";
 import walletKeypair from "../key.json";
@@ -7,9 +7,8 @@ import CheckoutButtonAccept from '@/components/checkoutButtonAccept';
 import { ProductCard } from '@/components/productCard';
 import { PRODUCTS } from '@/costants/costants';
 import { useSolanaGetProvider } from '@/hooks/useSolanaGetProvider';
-import { mintHandle } from '@/utils/mint';
 import { useSolana } from '@/hooks/useSolana';
-import { IProduct, IMintType, IMints } from '@/interface/productInterface';
+import { IProduct, IMintType } from '@/interface/productInterface';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useRouter } from 'next/router';
 import { showNotification } from '@/utils/showNotification';
@@ -21,15 +20,10 @@ export default function Home() {
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [selectedProduct, setSelectedProduct] = useState<IProduct | null>(null);
   const [quantity, setQuantity] = useState<string>("");
-  const [percent, setPercent] = useState<number | undefined>(undefined);
   const { provider, connection } = useSolanaGetProvider();
   const sellerKP: Keypair = Keypair.fromSecretKey(new Uint8Array(walletKeypair));
-  const providerMint: any = useRef({});
   const buyerWalletPK = useWallet().publicKey!!;
-  const { acceptWallet, acceptStripe } = useSolana({
-    // mintedProducts,
-    buyerWalletPK
-  });
+  const { acceptWallet, acceptStripe } = useSolana({ buyerWalletPK });
   const router = useRouter();
 
   useEffect(() => {
@@ -64,38 +58,6 @@ export default function Home() {
     setShowPopup(false);
     setQuantity("");
   }
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const percentRes = selectedProduct?.price && selectedProduct?.price * +e.target.value / 100;
-    setPercent(percentRes);
-    setQuantity(e.target.value);
-  }
-
-  // useEffect(() => {
-  //   (async () => {
-  //     if (!Object.values(providerMint.current).length) {
-  //       for await (const type of Object.values(IMintType)) {
-  //         if (!providerMint.current[type]) {
-  //           providerMint.current[type] = await mintHandle({
-  //             connection,
-  //             seller,
-  //             type,
-  //             mintAmount: PRODUCTS.find(({ type: productType }) => productType === type)?.mintAmount,
-  //           });
-  //         }
-  //       }
-  //     }
-  //     setMintedProducts(providerMint.current)
-  //   })()
-  // }, [IMintType])
-
-  // const handleInitializeClick = (type: IMintType, price: number) => {
-  //   initialize(
-  //     seller,
-  //     provider,
-  //     price,
-  //     type,
-  //   )
-  // }
 
   const handleAcceptClick = (type: IMintType, quantity: string) => {
     acceptWallet({
@@ -117,7 +79,6 @@ export default function Home() {
               data={product}
               key={index}
               onBuyClick={handleBuyClick}
-              onInitializeClick={() => { return; }}
             />
           })}
         </div>
@@ -129,7 +90,7 @@ export default function Home() {
             <p className="text-gray-700">How many tokens of {selectedProduct?.title} you want to buy?</p>
             <input type="number" placeholder='How much tokens of product do you want'
               value={quantity}
-              onChange={(e) => handleQuantityChange(e)}
+              onChange={({ target: { value = "" } = {} }) => { setQuantity(value) }}
               className="border border-gray-300 rounded-md p-2 mt-4 text-black placeholder:text-red-600"
               style={{ width: '100%', textAlign: 'center', }}
             />
