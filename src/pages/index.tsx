@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Keypair } from "@solana/web3.js";
 import CheckoutButtonStripe from "@/components/checkoutStripe";
-import walletKeypair from "../../create.json";
+import walletKeypair from "../key.json";
 import CheckoutButtonAccept from '@/components/checkoutButtonAccept';
 import { ProductCard } from '@/components/productCard';
 import { PRODUCTS } from '@/costants/costants';
@@ -22,15 +22,15 @@ export default function Home() {
   const [quantity, setQuantity] = useState<string>("");
   const [percent, setPercent] = useState<number | undefined>(undefined);
   const { provider, connection } = useSolanaGetProvider();
-  const seller: Keypair = Keypair.fromSecretKey(new Uint8Array(walletKeypair));
+  const sellerKP: Keypair = Keypair.fromSecretKey(new Uint8Array(walletKeypair));
   const providerMint: any = useRef({});
   const [mintedProducts, setMintedProducts] = useState<IMints | {}>({});
   const buyerWalletPK = useWallet().publicKey!!;
-  const router = useRouter();
-  const { initialize, acceptWallet, acceptStripe } = useSolana({
+  const { acceptWallet, acceptStripe } = useSolana({
     mintedProducts,
     buyerWalletPK
   });
+  const router = useRouter();
 
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function Home() {
         if (buyerWalletPK && Object.values(mintedProducts).length && tokenAmount) {
           const isStripeAccepted = await acceptStripe({
             provider,
-            sellerAccept: seller,
+            sellerAccept: sellerKP,
             type: IMintType[typeQueryParam as keyof typeof IMintType],
             connection,
             quantity: quantity || tokenAmount,
@@ -71,37 +71,37 @@ export default function Home() {
     setQuantity(e.target.value);
   }
 
-  useEffect(() => {
-    (async () => {
-      if (!Object.values(providerMint.current).length) {
-        for await (const type of Object.values(IMintType)) {
-          if (!providerMint.current[type]) {
-            providerMint.current[type] = await mintHandle({
-              connection,
-              seller,
-              type,
-              mintAmount: PRODUCTS.find(({ type: productType }) => productType === type)?.mintAmount,
-            });
-          }
-        }
-      }
-      setMintedProducts(providerMint.current)
-    })()
-  }, [IMintType])
+  // useEffect(() => {
+  //   (async () => {
+  //     if (!Object.values(providerMint.current).length) {
+  //       for await (const type of Object.values(IMintType)) {
+  //         if (!providerMint.current[type]) {
+  //           providerMint.current[type] = await mintHandle({
+  //             connection,
+  //             seller,
+  //             type,
+  //             mintAmount: PRODUCTS.find(({ type: productType }) => productType === type)?.mintAmount,
+  //           });
+  //         }
+  //       }
+  //     }
+  //     setMintedProducts(providerMint.current)
+  //   })()
+  // }, [IMintType])
 
-  const handleInitializeClick = (type: IMintType, price: number) => {
-    initialize(
-      seller,
-      provider,
-      price,
-      type,
-    )
-  }
-  // TODO: add price
+  // const handleInitializeClick = (type: IMintType, price: number) => {
+  //   initialize(
+  //     seller,
+  //     provider,
+  //     price,
+  //     type,
+  //   )
+  // }
+
   const handleAcceptClick = (type: IMintType, quantity: string) => {
     acceptWallet({
       provider,
-      sellerAccept: seller,
+      sellerAccept: sellerKP,
       type,
       connection,
       quantity
@@ -118,7 +118,7 @@ export default function Home() {
               data={product}
               key={index}
               onBuyClick={handleBuyClick}
-              onInitializeClick={() => handleInitializeClick(product.type, product.price)}
+              onInitializeClick={() => {return;}}
             />
           })}
         </div>

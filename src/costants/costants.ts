@@ -14,7 +14,7 @@ export const PRODUCTS = [
     title: "Rolex",
     price: 5000,
     image: rolex,
-    type: IMintType.x_mint_19,
+    type: IMintType.watch,
     mintAmount: 1000000,
   },
   {
@@ -22,7 +22,7 @@ export const PRODUCTS = [
     title: "Ferrari",
     price: 200000,
     image: ferrari,
-    type: IMintType.y_mint_19,
+    type: IMintType.car,
     mintAmount: 1000000,
   },
   {
@@ -30,7 +30,7 @@ export const PRODUCTS = [
     title: "Yacht",
     price: 500000,
     image: yacht,
-    type: IMintType.z_mint_19,
+    type: IMintType.boat,
     mintAmount: 1000000,
   },
 ];
