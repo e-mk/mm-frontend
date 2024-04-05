@@ -6,12 +6,10 @@ const asyncStripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY as
 
 const CheckoutButtonStripe = ({
     amount = 1,
-    productId,
     type
 }:
     {
         amount: number | string,
-        productId: number,
         type: string
     }) => {
     const router = useRouter();
@@ -24,7 +22,6 @@ const CheckoutButtonStripe = ({
                 method: "POST",
                 body: JSON.stringify({
                     amount: usdAmount,
-                    id: productId,
                     type
                 }),
                 headers: { "Content-Type": "application/json" },

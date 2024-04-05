@@ -10,27 +10,24 @@ export const USDC_MINT = new PublicKey(
 
 export const PRODUCTS = [
   {
-    id: 1,
     title: "Rolex",
     price: 5000,
     image: rolex,
-    type: IMintType.x_mint_19,
+    type: IMintType.watch,
     mintAmount: 1000000,
   },
   {
-    id: 2,
     title: "Ferrari",
     price: 200000,
     image: ferrari,
-    type: IMintType.y_mint_19,
+    type: IMintType.car,
     mintAmount: 1000000,
   },
   {
-    id: 3,
     title: "Yacht",
     price: 500000,
     image: yacht,
-    type: IMintType.z_mint_19,
+    type: IMintType.boat,
     mintAmount: 1000000,
   },
 ];

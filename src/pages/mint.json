@@ -1,14 +1,20 @@
 {
-  "x_mint_19": {
-    "mintAddress": "HBsZy9nhLAUGuaARChYwAKWqF7CxYj588cS5WZWZZdeP",
-    "sellers_token": "5kmZ9GDQy1i4bTRh66CJ6ZEcHsEBdt8sjZDpNAxJ6NTc"
+  "watch": {
+    "id": "d5b4a4050",
+    "mintAddress": "JEAVEpwGZmnNP2pLYLtDxU7Wq6MWwFJ7dsGRwKRpEpfq",
+    "associatedTokenAddress": "BdHMinbHivzFzb9RGVNiYZqciaSnbb2EEnNQXY5e5jht",
+    "price": 200000
   },
-  "y_mint_19": {
-    "mintAddress": "HE2vNBteqwsMAuZsUe6hDS9bQfL1496ME1z9UV4MS4qg",
-    "sellers_token": "BYUzx18xZ1gHZs1te57AszjBScRUQKkTRWowwow1JKzR"
+  "car": {
+    "id": "c44ff4a51",
+    "mintAddress": "27xcFEa4E3W7P5FajfPTn1G2UYdkJ6cTpQZgYnaHpiXF",
+    "associatedTokenAddress": "3TZY5djJtYgc1qwvQPh38vKUsjVtdvxSXrCakj93mXCF",
+    "price": 200000
   },
-  "z_mint_19": {
-    "mintAddress": "DCCH2cqd11eAERrKvvAK5AtYSrAdtattQ9yi7QmEmGX4",
-    "sellers_token": "GFjEDD3TyBhatGCBb4w1NXgy2XwpgSwMGhDMhK9dx8C6"
+  "boat": {
+    "id": "7363a008d",
+    "mintAddress": "8971xCyNfJJT4aL6ii2hGyirTErDLhaGzZyk453T7veh",
+    "associatedTokenAddress": "9P8C8MpGfbfFTaWV7NnWuSUB6hau7ATHdnHKgvkJ13oF",
+    "price": 500000
   }
 }

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Keypair } from "@solana/web3.js";
 import CheckoutButtonStripe from "@/components/checkoutStripe";
-import walletKeypair from "../../create.json";
+import walletKeypair from "../key.json";
 import CheckoutButtonAccept from '@/components/checkoutButtonAccept';
 import { ProductCard } from '@/components/productCard';
 import { PRODUCTS } from '@/costants/costants';
@@ -13,6 +13,7 @@ import { IProduct, IMintType, IMints } from '@/interface/productInterface';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useRouter } from 'next/router';
 import { showNotification } from '@/utils/showNotification';
+import mintedProducts from "../pages/mint.json";
 
 export default function Home() {
   const tokenAmount = new URLSearchParams(window.location.search).get('amount');
@@ -22,16 +23,14 @@ export default function Home() {
   const [quantity, setQuantity] = useState<string>("");
   const [percent, setPercent] = useState<number | undefined>(undefined);
   const { provider, connection } = useSolanaGetProvider();
-  const seller: Keypair = Keypair.fromSecretKey(new Uint8Array(walletKeypair));
+  const sellerKP: Keypair = Keypair.fromSecretKey(new Uint8Array(walletKeypair));
   const providerMint: any = useRef({});
-  const [mintedProducts, setMintedProducts] = useState<IMints | {}>({});
   const buyerWalletPK = useWallet().publicKey!!;
-  const router = useRouter();
-  const { initialize, acceptWallet, acceptStripe } = useSolana({
-    mintedProducts,
+  const { acceptWallet, acceptStripe } = useSolana({
+    // mintedProducts,
     buyerWalletPK
   });
-
+  const router = useRouter();
 
   useEffect(() => {
     (async () => {
@@ -39,7 +38,7 @@ export default function Home() {
         if (buyerWalletPK && Object.values(mintedProducts).length && tokenAmount) {
           const isStripeAccepted = await acceptStripe({
             provider,
-            sellerAccept: seller,
+            sellerAccept: sellerKP,
             type: IMintType[typeQueryParam as keyof typeof IMintType],
             connection,
             quantity: quantity || tokenAmount,
@@ -71,37 +70,37 @@ export default function Home() {
     setQuantity(e.target.value);
   }
 
-  useEffect(() => {
-    (async () => {
-      if (!Object.values(providerMint.current).length) {
-        for await (const type of Object.values(IMintType)) {
-          if (!providerMint.current[type]) {
-            providerMint.current[type] = await mintHandle({
-              connection,
-              seller,
-              type,
-              mintAmount: PRODUCTS.find(({ type: productType }) => productType === type)?.mintAmount,
-            });
-          }
-        }
-      }
-      setMintedProducts(providerMint.current)
-    })()
-  }, [IMintType])
+  // useEffect(() => {
+  //   (async () => {
+  //     if (!Object.values(providerMint.current).length) {
+  //       for await (const type of Object.values(IMintType)) {
+  //         if (!providerMint.current[type]) {
+  //           providerMint.current[type] = await mintHandle({
+  //             connection,
+  //             seller,
+  //             type,
+  //             mintAmount: PRODUCTS.find(({ type: productType }) => productType === type)?.mintAmount,
+  //           });
+  //         }
+  //       }
+  //     }
+  //     setMintedProducts(providerMint.current)
+  //   })()
+  // }, [IMintType])
 
-  const handleInitializeClick = (type: IMintType, price: number) => {
-    initialize(
-      seller,
-      provider,
-      price,
-      type,
-    )
-  }
-  // TODO: add price
+  // const handleInitializeClick = (type: IMintType, price: number) => {
+  //   initialize(
+  //     seller,
+  //     provider,
+  //     price,
+  //     type,
+  //   )
+  // }
+
   const handleAcceptClick = (type: IMintType, quantity: string) => {
     acceptWallet({
       provider,
-      sellerAccept: seller,
+      sellerAccept: sellerKP,
       type,
       connection,
       quantity
@@ -118,7 +117,7 @@ export default function Home() {
               data={product}
               key={index}
               onBuyClick={handleBuyClick}
-              onInitializeClick={() => handleInitializeClick(product.type, product.price)}
+              onInitializeClick={() => { return; }}
             />
           })}
         </div>
@@ -127,7 +126,7 @@ export default function Home() {
         <div className="fixed top-0 left-0 w-full h-full bg-gray-700 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-8 rounded-lg">
             <h2 className="text-2xl font-medium text-gray-800 mb-4">Confirm Purchase</h2>
-            <p className="text-gray-700">Do you want to buy {selectedProduct?.title} for {selectedProduct?.price} SOL?</p>
+            <p className="text-gray-700">How many tokens of {selectedProduct?.title} you want to buy?</p>
             <input type="number" placeholder='How much tokens of product do you want'
               value={quantity}
               onChange={(e) => handleQuantityChange(e)}
@@ -139,7 +138,6 @@ export default function Home() {
               <CheckoutButtonStripe
                 type={selectedProduct.type}
                 amount={quantity ? quantity : selectedProduct?.price}
-                productId={selectedProduct?.id}
               />
               <CheckoutButtonAccept onAcceptClick={() => handleAcceptClick(selectedProduct?.type, quantity)} />
             </div>

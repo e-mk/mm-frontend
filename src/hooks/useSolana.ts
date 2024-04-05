@@ -17,73 +17,61 @@ import { USDC_MINT, YPRICE } from "@/costants/costants";
 import { IMintType, IMints } from "@/interface/productInterface";
 import wallet from "../key.json";
 import { intToBytes } from "@/utils/utils";
-
-const log = async (signature: string): Promise<string> => {
-  console.log(
-    `Your transaction signature: https://explorer.solana.com/transaction/${signature}?cluster=custom&customUrl=${
-      anchor.getProvider().connection.rpcEndpoint
-    }`
-  );
-  return signature.toString();
-};
+import { adminKeypair, findProductByType, programID } from "@/pages/utils";
+import mintedProducts from "../pages/mint.json";
 
 export const useSolana = ({
-  mintedProducts,
+  // mintedProducts,
   buyerWalletPK,
 }: {
-  mintedProducts: IMints | {};
+  // mintedProducts: IMints | {};
   buyerWalletPK: PublicKey;
 }) => {
-  const programID = new web3.PublicKey(
-    process.env.NEXT_PUBLIC_SOLANA_PROGRAM_ID as PublicKeyData
-  );
-  const adminKeypair = Keypair.fromSecretKey(new Uint8Array(wallet));
+  // const initialize = async (
+  //   seller: Keypair,
+  //   provider?: AnchorProvider,
+  //   price?: number,
+  //   type?: IMintType
+  // ) => {
+  //   const program = new Program(idl as Idl, programID, provider);
+  //   const { mint = "", sellers_token = "" } =
+  //     (mintedProducts as IMints)[type!!] ?? {};
 
-  const initialize = async (
-    seller: Keypair,
-    provider?: AnchorProvider,
-    price?: number,
-    type?: IMintType
-  ) => {
-    const program = new Program(idl as Idl, programID, provider);
-    const { mint = "", sellers_token = "" } =
-      (mintedProducts as IMints)[type!!] ?? {};
+  //   const escrow = anchor.web3.PublicKey.findProgramAddressSync(
+  //     [
+  //       anchor.utils.bytes.utf8.encode("escrow"),
+  //       seller.publicKey.toBuffer(),
+  //       anchor.utils.bytes.utf8.encode(type as string),
+  //     ],
+  //     programID
+  //   );
 
-    const escrow = anchor.web3.PublicKey.findProgramAddressSync(
-      [
-        anchor.utils.bytes.utf8.encode("escrow"),
-        seller.publicKey.toBuffer(),
-        anchor.utils.bytes.utf8.encode(type as string),
-      ],
-      programID
-    );
+  //   const escrowedXTokens = anchor.web3.PublicKey.findProgramAddressSync(
+  //     [anchor.utils.bytes.utf8.encode("escrow"), escrow[0].toBuffer()],
+  //     programID
+  //   );
+  //   const TOKEN_DECIMALS = 1000000;
+  //   const xAmount = new anchor.BN((price!! * TOKEN_DECIMALS) / YPRICE);
 
-    const escrowedXTokens = anchor.web3.PublicKey.findProgramAddressSync(
-      [anchor.utils.bytes.utf8.encode("escrow"), escrow[0].toBuffer()],
-      programID
-    );
-    const TOKEN_DECIMALS = 1000000;
-    const xAmount = new anchor.BN((price!! * TOKEN_DECIMALS) / YPRICE);
-
-    try {
-      await program.methods
-        .initialize(xAmount, new anchor.BN(YPRICE), type)
-        .accounts({
-          seller: seller.publicKey,
-          xMint: mint,
-          yMint: USDC_MINT,
-          sellersXToken: sellers_token,
-          escrow: escrow[0],
-          escrowedXTokens: escrowedXTokens[0],
-          tokenProgram: splToken.TOKEN_PROGRAM_ID,
-          systemProgram: anchor.web3.SystemProgram.programId,
-        })
-        .signers([seller])
-        .rpc();
-    } catch (error) {
-      showNotification((error as { message: string }).message, "error");
-    }
-  };
+  //   try {
+  //     await program.methods
+  //       .initialize(xAmount, new anchor.BN(YPRICE), type)
+  //       .accounts({
+  //         seller: seller.publicKey,
+  //         xMint: mint,
+  //         yMint: USDC_MINT,
+  //         sellersXToken: sellers_token,
+  //         escrow: escrow[0],
+  //         escrowedXTokens: escrowedXTokens[0],
+  //         tokenProgram: splToken.TOKEN_PROGRAM_ID,
+  //         systemProgram: anchor.web3.SystemProgram.programId,
+  //       })
+  //       .signers([seller])
+  //       .rpc();
+  //   } catch (error) {
+  //     showNotification((error as { message: string }).message, "error");
+  //   }
+  // };
 
   const acceptWallet = async ({
     provider,
@@ -94,17 +82,20 @@ export const useSolana = ({
   }: {
     provider?: AnchorProvider;
     sellerAccept: Keypair;
-    type?: IMintType;
+    type: IMintType;
     connection: Connection;
     quantity: string;
   }) => {
     const program = new Program(idl as Idl, programID, provider);
+    const { id } = findProductByType(type) ?? {};
+    const productId = `${type}-${id}`;
+
 
     const escrowAccept = anchor.web3.PublicKey.findProgramAddressSync(
       [
         anchor.utils.bytes.utf8.encode("escrow"),
         sellerAccept.publicKey.toBuffer(),
-        anchor.utils.bytes.utf8.encode(type as string),
+        anchor.utils.bytes.utf8.encode(productId),
       ],
       programID
     );
@@ -114,12 +105,12 @@ export const useSolana = ({
       programID
     );
 
-    const { mint = "" } = (mintedProducts as IMints)[type!!] ?? {};
+    const { mintAddress = "" } = (mintedProducts as IMints)[type!!] ?? {};
 
     const buyers_token_init = await splToken.getOrCreateAssociatedTokenAccount(
       connection,
       sellerAccept,
-      new PublicKey(mint),
+      new PublicKey(mintAddress),
       buyerWalletPK
     );
 
@@ -136,7 +127,6 @@ export const useSolana = ({
       USDC_MINT,
       sellerAccept.publicKey
     );
-
     const xRequested = +quantity * 1000000;
     const yAmount = +xRequested * YPRICE;
 
@@ -172,18 +162,20 @@ export const useSolana = ({
   }: {
     provider?: AnchorProvider;
     sellerAccept: Keypair;
-    type?: IMintType;
+    type: IMintType;
     connection: Connection;
     quantity: string;
     mintedProductsData: any;
   }) => {
     const program = new Program(idl as Idl, programID, provider);
+    const { id } = findProductByType(type) ?? {};
+    const productId = `${type}-${id}`;
 
     const escrowAcceptStripe = anchor.web3.PublicKey.findProgramAddressSync(
       [
         anchor.utils.bytes.utf8.encode("escrow"),
         sellerAccept.publicKey.toBuffer(),
-        anchor.utils.bytes.utf8.encode(type as string),
+        anchor.utils.bytes.utf8.encode(productId),
       ],
       programID
     );
@@ -196,12 +188,12 @@ export const useSolana = ({
         programID
       );
 
-    const { mint = "" } = (mintedProductsData as IMints)[type!!] ?? {};
+    const { mintAddress = "" } = (mintedProductsData as IMints)[type!!] ?? {};
 
     const buyers_token_init = await splToken.getOrCreateAssociatedTokenAccount(
       connection,
       sellerAccept,
-      new PublicKey(mint),
+      new PublicKey(mintAddress),
       buyerWalletPK
     );
 
@@ -255,5 +247,5 @@ export const useSolana = ({
     }
   };
 
-  return { initialize, acceptWallet, acceptStripe };
+  return { acceptWallet, acceptStripe };
 };
