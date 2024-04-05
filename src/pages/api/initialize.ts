@@ -1,27 +1,41 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
-  PublicKey,
-  SystemProgram,
-} from "@solana/web3.js";
-import { Program, Idl, BN, AnchorProvider, utils, Wallet } from "@project-serum/anchor";
-import idl  from '../../mm_escrow.json';
-import mintData  from '../mint.json';
+  Program,
+  Idl,
+  BN,
+  AnchorProvider,
+  utils,
+  Wallet,
+} from "@project-serum/anchor";
+import idl from "../../mm_escrow.json";
+import mintData from "../mint.json";
 import { USDC_MINT, YPRICE } from "@/costants/costants";
 import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { adminKeypair, confirmTx, connection, findProductByType, opts, programID } from "../utils";
-
-const provider = new AnchorProvider(
+import {
+  adminKeypair,
+  confirmTx,
   connection,
-  new Wallet(adminKeypair),
-  opts
-);
+  findProductByType,
+  opts,
+  programID,
+} from "../utils";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+const provider = new AnchorProvider(connection, new Wallet(adminKeypair), opts);
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const { type }: { type: string } = req.body;
   const program = new Program(idl as Idl, programID, provider);
   const mintJsonData: any = mintData;
-  const { mintAddress = "", associatedTokenAddress = "", price = 0 } = mintJsonData[type!!] ?? {};
+  const {
+    mintAddress = "",
+    associatedTokenAddress = "",
+    price = 0,
+  } = mintJsonData[type!!] ?? {};
   const { id = "" } = findProductByType(type) ?? {};
   const productId = `${type}-${id}`;
 
@@ -56,18 +70,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .signers([adminKeypair])
       .rpc()
       .then(confirmTx)
-      .catch(error => {
+      .catch((error) => {
         console.log(error);
         res.status(500).json({
-          error
-        })
+          error,
+        });
       });
-      res.status(200).json({
-        done: true
-      })
+    res.status(200).json({
+      done: true,
+    });
   } catch (error) {
     res.status(500).json({
-      error
-    })
+      error,
+    });
   }
 }

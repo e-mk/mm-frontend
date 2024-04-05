@@ -138,7 +138,6 @@ export default function Home() {
               <CheckoutButtonStripe
                 type={selectedProduct.type}
                 amount={quantity ? quantity : selectedProduct?.price}
-                productId={selectedProduct?.id}
               />
               <CheckoutButtonAccept onAcceptClick={() => handleAcceptClick(selectedProduct?.type, quantity)} />
             </div>
