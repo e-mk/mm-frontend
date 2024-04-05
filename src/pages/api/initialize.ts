@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   Program,
@@ -71,7 +70,6 @@ export default async function handler(
       .rpc()
       .then(confirmTx)
       .catch((error) => {
-        console.log(error);
         res.status(500).json({
           error,
         });

@@ -58,7 +58,6 @@ export default async function handler(
       writeFileSync(path, JSON.stringify(parsedData, null, 2), "utf8");
     } catch (error) {
       res.status(500).json({ error });
-      console.log("An error has occurred ", error);
     }
   } else {
     res.status(500).json({ signature });

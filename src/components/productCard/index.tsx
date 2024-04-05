@@ -1,15 +1,12 @@
-import Image from "next/image"
-import CheckoutButtonWallet from "../checkoutWallet"
-import { IProduct } from "@/interface/productInterface"
+import Image from "next/image";
+import { IProduct } from "@/interface/productInterface";
 
 export const ProductCard = ({
     data,
     onBuyClick,
-    onInitializeClick,
 }: {
     data: IProduct,
     onBuyClick: (data: IProduct) => void,
-    onInitializeClick: () => void,
 }) => {
     return (
         <div className="mb-10 p-4 border border-[#28DBD1] bg-[#09202F] rounded-lg ">
@@ -21,7 +18,6 @@ export const ProductCard = ({
             </h2>
             <p className="leading-relaxed text-base">{`Price ${data.price} USDC`}</p>
             <button onClick={() => onBuyClick(data)} className="bg-blue-700 hover:bg-blue-800 duration-200 px-10 m-3 py-2 rounded-lg text-white">Buy</button>
-            <CheckoutButtonWallet onInitializeClick={onInitializeClick} />
         </div>
     )
 }

@@ -6,7 +6,6 @@ import { ReactNode } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
 const WalletConnectionProvider = dynamic<{ children: ReactNode }>(
   () =>
     import("../components/solanaWallet").then(
